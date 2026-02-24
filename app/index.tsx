@@ -1,4 +1,11 @@
+import React, { useState } from "react";
 import { Text, View } from "react-native";
+
+const GeneradorSaludos = () => {
+  //State definition
+  const [name, setName] = useState('');
+  const [age, setAge] = useState('');
+}
 
 export default function Index() {
   return (
