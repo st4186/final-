@@ -5,21 +5,25 @@ const GeneradorSaludos = () => {
   //State definition
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
+  const [email, setEmail] = useState('');
 
   //Function to trigger the action btn
   const handleBtnHello = () => {
     //Empty space validation
-    if (name.trim() === '' || age.trim() === ''){
+    if (name.trim() === '' || age.trim() === '' || email.trim() === ''){
       Alert.alert('Error', 'Please, all fields are required');
       return;
     }
     //Show alert with hello message
-    Alert.alert('Welcome', `Hello, ${name} you are ${age} years old.`);
+    Alert.alert('Welcome', `Hello, ${name} with email ${email} you are ${age} years old.`);
 
     //Clean
     setName('');
     setAge('');
+    setEmail('');
   }
+
+  
   
   //Structure
   return (
@@ -33,14 +37,23 @@ const GeneradorSaludos = () => {
       onChangeText={setName} // Actualizar el estado/espacio de memoria cada vez que entra un caracteren el input
       autoCapitalize="words" //Pone en mayuscula la primer letra
       />
-
-            <TextInput
+      
+      <TextInput
       style={styles.input}
       placeholder="Escribe tu edad"
       value={age}
       onChangeText={setAge} // Actualizar el estado/espacio de memoria cada vez que entra un caracteren el input
       keyboardType="numeric"
       maxLength={3}
+      />
+
+      <TextInput
+      style={styles.input}
+      placeholder="Escribe tu email"
+      value={email}
+      onChangeText={setEmail} // Actualizar el estado/espacio de memoria cada vez que entra un caracteren el input
+      maxLength={20}
+      keyboardType="email-address"
       />
 
       <Button
@@ -54,7 +67,7 @@ const GeneradorSaludos = () => {
 
 export default function Index() {
   return (
-    GeneradorSaludos
+    <GeneradorSaludos/>
   );
 }
 
