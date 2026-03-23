@@ -1,7 +1,7 @@
-import PantallaContacto from "./components/PantallaContacto";
+import LoginScreen from "./components/LoginScreen";
 
 export default function Index() {
   return (
-    <PantallaContacto/>
+    <LoginScreen/>
   );
 }

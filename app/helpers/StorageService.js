@@ -24,7 +24,7 @@ class StorageService {
             const jsonValue = JSON.stringify(value);
             await AsyncStorage.setItem(key, jsonValue);
         } catch (error) {
-            console.error("Error guradando en AsyncStorage", error);
+            console.error("Error guardando en AsyncStorage", error);
         }
     }
 
@@ -47,6 +47,26 @@ class StorageService {
             console.error("Error en Keychain", error);
         }
     }
+
+    static async getCredential(){
+        try {
+            const credentials = await Keychain.getGenericPassword();
+            if (credentials){
+                return {
+                    user: credentials.username,
+                    token: credentials.password
+                }
+            }
+            return null;
+        } catch (error) {
+            console.error("No se pudieron recuperar las credenciales.", error);
+        }
+    }
+
+    static async resetCredential(){
+        await Keychain.resetGenericPassword();
+    }
 }
 
+export default StorageService;
 //Investigar Await, Parsear, operadores ternarios
