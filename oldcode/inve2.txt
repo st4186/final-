@@ -1,0 +1,212 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import {
+  FlatList,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+
+// Datos de inventario
+const inventoryData = [
+  {
+    id: '1',
+    name: 'LIBRARY CUBICLE',
+    location: 'LEARNING COMMONS',
+    status: 'AVAILABLE',
+  },
+  {
+    id: '2',
+    name: 'MAC LAB',
+    location: 'BUILDING D',
+    status: 'AVAILABLE',
+  },
+  {
+    id: '3',
+    name: 'INDUSTRIAL WORKSHOP',
+    location: 'BUILDING B',
+    status: 'AVAILABLE',
+  },
+  {
+    id: '4',
+    name: 'LASER PRINTER',
+    location: 'BUILDING D',
+    status: 'AVAILABLE',
+  },
+  {
+    id: '5',
+    name: 'LAB CHAIRS',
+    location: 'BUILDING B- BL01',
+    status: 'IN USE',
+  },
+  {
+    id: '6',
+    name: 'IT LAB',
+    location: 'BUILDING D- DL02',
+    status: 'IN QUEUE',
+  },
+];
+
+export default function InventoryScreen() {
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Filtrar por búsqueda
+  const filteredData = inventoryData.filter(item =>
+    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.location.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Función simple para el botón REQUEST
+  const handleRequest = (itemName: string) => {
+    alert(`Solicitaste: ${itemName}`);
+  };
+
+  // Obtener color según estado
+  const getStatusColor = (status: string) => {
+    if (status === 'AVAILABLE') return '#4CAF50';
+    if (status === 'IN USE') return '#FF9800';
+    return '#F44336';
+  };
+
+  // Renderizar cada tarjeta
+  const renderCard = ({ item }: { item: any }) => (
+    <View style={styles.card}>
+      <View style={styles.cardHeader}>
+        <Text style={styles.itemName}>{item.name}</Text>
+        <Text style={[styles.status, { color: getStatusColor(item.status) }]}>
+          {item.status}
+        </Text>
+      </View>
+      
+      <Text style={styles.location}>{item.location}</Text>
+      
+      <TouchableOpacity 
+        style={styles.requestButton}
+        onPress={() => handleRequest(item.name)}
+      >
+        <Text style={styles.requestText}>REQUEST</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" />
+      
+      {/* Header con botón back */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={24} color="#4A90E2" />
+        </TouchableOpacity>
+        <Text style={styles.title}>Total Resources</Text>
+        <View style={{ width: 24 }} />
+      </View>
+
+      {/* Barra de búsqueda */}
+      <View style={styles.searchContainer}>
+        <Ionicons name="search-outline" size={20} color="#999" />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search inventory..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+      </View>
+
+      {/* Lista de recursos */}
+      <FlatList
+        data={filteredData}
+        keyExtractor={(item) => item.id}
+        renderItem={renderCard}
+        contentContainerStyle={styles.list}
+      />
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    margin: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 8,
+    fontSize: 14,
+  },
+  list: {
+    paddingHorizontal: 16,
+    paddingBottom: 20,
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#eee',
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  itemName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  status: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  location: {
+    fontSize: 13,
+    color: '#666',
+    marginBottom: 12,
+  },
+  requestButton: {
+    backgroundColor: '#4A90E2',
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  requestText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+});

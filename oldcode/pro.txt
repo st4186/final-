@@ -1,0 +1,184 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import React from 'react';
+import {
+    Alert,
+    SafeAreaView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
+} from 'react-native';
+
+export default function ProfileScreen() {
+  const router = useRouter();
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Cerrar sesión',
+      '¿Estás seguro de que quieres salir?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { 
+          text: 'Salir', 
+          onPress: () => router.replace('/login'),
+          style: 'destructive'
+        },
+      ]
+    );
+  };
+
+  const menuItems = [
+    { icon: 'person-outline', title: 'Mi cuenta', color: '#4A90E2' },
+    { icon: 'notifications-outline', title: 'Notificaciones', color: '#FF9800' },
+    { icon: 'time-outline', title: 'Mis reservas', color: '#4CAF50' },
+    { icon: 'card-outline', title: 'Métodos de pago', color: '#9C27B0' },
+    { icon: 'help-circle-outline', title: 'Ayuda y soporte', color: '#F44336' },
+    { icon: 'information-circle-outline', title: 'Acerca de', color: '#607D8B' },
+  ];
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#f5f5f5" />
+      
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={24} color="#333" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Mi Perfil</Text>
+        <View style={{ width: 24 }} />
+      </View>
+
+      {/* Información del usuario */}
+      <View style={styles.profileInfo}>
+        <View style={styles.avatarContainer}>
+          <Ionicons name="person-circle" size={80} color="#4A90E2" />
+        </View>
+        <Text style={styles.userName}>Usuario Demo</Text>
+        <Text style={styles.userEmail}>usuario@edutech.com</Text>
+      </View>
+
+      {/* Menú de opciones */}
+      <View style={styles.menuContainer}>
+        {menuItems.map((item, index) => (
+          <TouchableOpacity 
+            key={index} 
+            style={styles.menuItem}
+            onPress={() => Alert.alert(item.title, 'Próximamente disponible')}
+          >
+            <View style={styles.menuLeft}>
+              <Ionicons name={item.icon as any} size={22} color={item.color} />
+              <Text style={styles.menuTitle}>{item.title}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#ccc" />
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* Botón de cerrar sesión */}
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <Ionicons name="log-out-outline" size={22} color="#F44336" />
+        <Text style={styles.logoutText}>Cerrar sesión</Text>
+      </TouchableOpacity>
+
+      {/* Versión de la app */}
+      <Text style={styles.version}>EDUTECH v1.0.0</Text>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  profileInfo: {
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    paddingVertical: 24,
+    marginBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  avatarContainer: {
+    marginBottom: 12,
+  },
+  userName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  userEmail: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 4,
+  },
+  menuContainer: {
+    backgroundColor: '#fff',
+    marginHorizontal: 16,
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#eee',
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  menuLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  menuTitle: {
+    fontSize: 15,
+    color: '#333',
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#fff',
+    marginHorizontal: 16,
+    marginTop: 24,
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#F44336',
+  },
+  logoutText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#F44336',
+  },
+  version: {
+    textAlign: 'center',
+    color: '#999',
+    fontSize: 12,
+    marginTop: 24,
+    marginBottom: 20,
+  },
+});

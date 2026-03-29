@@ -1,0 +1,460 @@
+/**
+ * Pantalla principal de la aplicación
+ * Muestra los recursos en uso y permite navegar al inventario completo
+ * 
+ * @module HomeScreen
+ */
+
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import {
+    Dimensions,
+    FlatList,
+    SafeAreaView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+
+// Dimensiones de la pantalla para ajustes responsivos
+const { width, height } = Dimensions.get('window');
+
+/**
+ * Datos de ejemplo para los recursos
+ * Simula la información que vendría de una API
+ */
+const resourcesData = [
+  {
+    id: '1',
+    name: 'LAB CHAIRS',
+    location: 'Building B- BL01',
+    user: 'user@gmail.com',
+    status: 'IN USE',
+    statusColor: '#FF9800',
+  },
+  {
+    id: '2',
+    name: 'IT LAB',
+    location: 'Building D- DL02',
+    user: 'user@gmail.com',
+    status: 'IN QUEUE',
+    statusColor: '#F44336',
+  },
+  {
+    id: '3',
+    name: 'INDUSTRIAL WORKSHOP',
+    location: 'Building B',
+    user: 'user@gmail.com',
+    status: 'IN QUEUE',
+    statusColor: '#F44336',
+    time: '9AM-10AM',
+  },
+];
+
+/**
+ * Componente principal de la pantalla Home
+ */
+export default function HomeScreen() {
+  // Hook de navegación
+  const router = useRouter();
+  
+  // Estado para el texto de búsqueda
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  // Estado para la pestaña activa en la navegación inferior
+  const [activeTab, setActiveTab] = useState('home');
+
+  /**
+   * Filtra los recursos según el texto de búsqueda
+   * Busca coincidencias en nombre y ubicación
+   */
+  const filteredResources = resourcesData.filter(item =>
+    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.location.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  /**
+   * Renderiza cada tarjeta de recurso
+   * @param {Object} item - Objeto con la información del recurso
+   */
+  const renderResourceCard = ({ item }) => (
+    <View style={styles.card}>
+      {/* Encabezado de la tarjeta: nombre y estado */}
+      <View style={styles.cardHeader}>
+        <View style={styles.itemIcon}>
+          <Ionicons name="cube-outline" size={18} color="#4A90E2" />
+          <Text style={styles.itemName}>{item.name}</Text>
+        </View>
+        <View style={[styles.statusBadge, { backgroundColor: item.statusColor + '20' }]}>
+          <Text style={[styles.statusText, { color: item.statusColor }]}>
+            {item.status}
+          </Text>
+        </View>
+      </View>
+      
+      {/* Ubicación del recurso */}
+      <View style={styles.locationContainer}>
+        <Ionicons name="location-outline" size={12} color="#888" />
+        <Text style={styles.location}>{item.location}</Text>
+      </View>
+      
+      {/* Horario (si aplica) */}
+      {item.time && (
+        <View style={styles.timeContainer}>
+          <Ionicons name="time-outline" size={12} color="#888" />
+          <Text style={styles.timeText}>TIME: {item.time}</Text>
+        </View>
+      )}
+      
+      {/* Usuario que utiliza el recurso */}
+      <View style={styles.userContainer}>
+        <Ionicons name="person-outline" size={12} color="#888" />
+        <Text style={styles.userText}>{item.user}</Text>
+      </View>
+    </View>
+  );
+
+  return (
+    <SafeAreaView style={styles.container}>
+      {/* Barra de estado del sistema */}
+      <StatusBar barStyle="dark-content" backgroundColor="#f8f9fa" />
+      
+      {/* Encabezado con logo e ícono de usuario */}
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.logo}>EDUTECH</Text>
+          <Text style={styles.subtitle}>Resources available</Text>
+        </View>
+        <TouchableOpacity style={styles.userIcon} onPress={() => router.push('/profile')}>
+          <Ionicons name="person-circle-outline" size={36} color="#4A90E2" />
+        </TouchableOpacity>
+      </View>
+      
+      {/* Barra de búsqueda */}
+      <View style={styles.searchWrapper}>
+        <View style={styles.searchContainer}>
+          <View style={styles.searchBar}>
+            <Ionicons name="search-outline" size={16} color="#999" />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Check inventory"
+              placeholderTextColor="#999"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+          <TouchableOpacity style={styles.filterButton}>
+            <Ionicons name="options-outline" size={16} color="#fff" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Contenido principal */}
+      <View style={styles.content}>
+        {/* Botón para ver lista completa de recursos */}
+        <TouchableOpacity 
+          style={styles.seeListButton} 
+          onPress={() => router.push('/inventory')}
+        >
+          <Text style={styles.seeListText}>SEE LIST</Text>
+          <Ionicons name="arrow-forward" size={16} color="#4A90E2" />
+        </TouchableOpacity>
+
+        {/* Título de la sección de recursos en uso */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>IN USE AND LOCATION</Text>
+          <Text style={styles.sectionCount}>{filteredResources.length} items</Text>
+        </View>
+
+        {/* Lista de tarjetas de recursos */}
+        <FlatList
+          data={filteredResources}
+          renderItem={renderResourceCard}
+          keyExtractor={(item) => item.id}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.cardsContainer}
+          style={styles.cardsList}
+        />
+      </View>
+
+      {/* Barra de navegación inferior */}
+      <View style={styles.bottomNav}>
+        {/* Botón Home */}
+        <TouchableOpacity 
+          style={styles.navItem} 
+          onPress={() => setActiveTab('home')}
+        >
+          <Ionicons 
+            name={activeTab === 'home' ? 'home' : 'home-outline'} 
+            size={20} 
+            color={activeTab === 'home' ? '#4A90E2' : '#999'} 
+          />
+          <Text style={[styles.navText, activeTab === 'home' && styles.navTextActive]}>
+            Home
+          </Text>
+        </TouchableOpacity>
+        
+        {/* Botón Search - navega al inventario */}
+        <TouchableOpacity 
+          style={styles.navItem} 
+          onPress={() => {
+            setActiveTab('search');
+            router.push('/inventory');
+          }}
+        >
+          <Ionicons 
+            name={activeTab === 'search' ? 'search' : 'search-outline'} 
+            size={20} 
+            color={activeTab === 'search' ? '#4A90E2' : '#999'} 
+          />
+          <Text style={[styles.navText, activeTab === 'search' && styles.navTextActive]}>
+            Search
+          </Text>
+        </TouchableOpacity>
+        
+        {/* Botón Profile - navega al perfil */}
+        <TouchableOpacity 
+          style={styles.navItem} 
+          onPress={() => router.push('/profile')}
+        >
+          <Ionicons 
+            name={activeTab === 'profile' ? 'person' : 'person-outline'} 
+            size={20} 
+            color={activeTab === 'profile' ? '#4A90E2' : '#999'} 
+          />
+          <Text style={[styles.navText, activeTab === 'profile' && styles.navTextActive]}>
+            Profile
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
+  );
+}
+
+/**
+ * Estilos de la pantalla
+ * Organizados por componente para mejor mantenimiento
+ */
+const styles = StyleSheet.create({
+  // Contenedor principal
+  container: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+  },
+  
+  // Encabezado
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  logo: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#4A90E2',
+  },
+  subtitle: {
+    fontSize: 10,
+    color: '#888',
+    marginTop: 1,
+  },
+  userIcon: {
+    padding: 2,
+  },
+  
+  // Barra de búsqueda
+  searchWrapper: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  searchBar: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#e8e8e8',
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 6,
+    fontSize: 13,
+    color: '#333',
+  },
+  filterButton: {
+    backgroundColor: '#4A90E2',
+    borderRadius: 10,
+    padding: 8,
+    width: 36,
+    alignItems: 'center',
+  },
+  
+  // Contenido principal
+  content: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+  },
+  
+  // Botón SEE LIST
+  seeListButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#e8e8e8',
+  },
+  seeListText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#4A90E2',
+  },
+  
+  // Sección de recursos
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+    paddingHorizontal: 2,
+  },
+  sectionTitle: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#888',
+    letterSpacing: 0.5,
+  },
+  sectionCount: {
+    fontSize: 10,
+    color: '#aaa',
+  },
+  cardsList: {
+    flex: 1,
+  },
+  cardsContainer: {
+    paddingBottom: 65,
+  },
+  
+  // Tarjetas de recursos
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.02,
+    shadowRadius: 2,
+    elevation: 1,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  itemIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  itemName: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#1a1a2e',
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+  },
+  statusText: {
+    fontSize: 9,
+    fontWeight: '600',
+  },
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 4,
+  },
+  location: {
+    fontSize: 11,
+    color: '#666',
+  },
+  timeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 4,
+  },
+  timeText: {
+    fontSize: 10,
+    color: '#888',
+  },
+  userContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 6,
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: '#f5f5f5',
+  },
+  userText: {
+    fontSize: 10,
+    color: '#888',
+  },
+  
+  // Barra de navegación inferior
+  bottomNav: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    paddingVertical: 6,
+    paddingHorizontal: 20,
+    paddingBottom: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+  },
+  navItem: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 3,
+  },
+  navText: {
+    fontSize: 9,
+    color: '#999',
+    fontWeight: '500',
+  },
+  navTextActive: {
+    color: '#4A90E2',
+    fontWeight: '600',
+  },
+});
