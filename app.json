@@ -1,11 +1,20 @@
 {
   "expo": {
+<<<<<<< HEAD
     "name": "TRABAJO1A",
     "slug": "TRABAJO1A",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "trabajo1a",
+=======
+    "name": "EduTechFrontend",
+    "slug": "EduTechFrontend",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "edutechfrontend",
+>>>>>>> master
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -38,8 +47,12 @@
             "backgroundColor": "#000000"
           }
         }
+<<<<<<< HEAD
       ],
       "expo-font"
+=======
+      ]
+>>>>>>> master
     ],
     "experiments": {
       "typedRoutes": true,
