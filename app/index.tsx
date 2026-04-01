@@ -2,7 +2,7 @@
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { getToken } from './utils/storage';
+import { getToken } from './src/helpers/storage';
 
 export default function Index() {
   const router = useRouter();
