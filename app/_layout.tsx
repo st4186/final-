@@ -11,5 +11,5 @@ export default function RootLayout() {
       <Stack.Screen name="profile" options={{ headerShown: false }} />
     </Stack>
   );
->>>>>>> master
+
 }
