@@ -1,6 +1,5 @@
 // src/helpers/storage.ts
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { STORAGE_KEYS } from '../helpers/constants';
 
@@ -9,6 +8,9 @@ export type OfflineData<T = any> = {
   timestamp: number;
   expiresAt?: number;
 };
+
+// Almacenamiento en memoria para datos que no requieren persistencia
+const memoryStorage = new Map<string, any>();
 
 export const saveToken = async (token: string): Promise<boolean> => {
   try {
@@ -39,6 +41,7 @@ export const removeToken = async (): Promise<boolean> => {
   }
 };
 
+// Usar memoria en lugar de AsyncStorage (que no funciona)
 export const saveOfflineData = async <T>(
   key: string,
   data: T
@@ -48,7 +51,9 @@ export const saveOfflineData = async <T>(
       data,
       timestamp: Date.now(),
     };
-    await AsyncStorage.setItem(key, JSON.stringify(payload));
+    // Guardar en memoria
+    memoryStorage.set(key, payload);
+    console.log(`Datos guardados en memoria: ${key}`);
     return true;
   } catch (error) {
     console.error(`Error saving offline data (${key}):`, error);
@@ -60,8 +65,10 @@ export const getOfflineData = async <T>(
   key: string
 ): Promise<OfflineData<T> | null> => {
   try {
-    const json = await AsyncStorage.getItem(key);
-    return json ? (JSON.parse(json) as OfflineData<T>) : null;
+    // Obtener de memoria
+    const data = memoryStorage.get(key);
+    console.log(`Datos recuperados de memoria: ${key}`, data ? 'OK' : 'vacío');
+    return data || null;
   } catch (error) {
     console.error(`Error reading offline data (${key}):`, error);
     return null;
@@ -70,7 +77,8 @@ export const getOfflineData = async <T>(
 
 export const clearOfflineData = async (key: string): Promise<boolean> => {
   try {
-    await AsyncStorage.removeItem(key);
+    memoryStorage.delete(key);
+    console.log(`Datos eliminados de memoria: ${key}`);
     return true;
   } catch (error) {
     console.error(`Error clearing offline data (${key}):`, error);

@@ -7,6 +7,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -20,7 +21,7 @@ import { useAuthViewModel } from '../viewmodels/useAuthViewModel';
 export default function LoginView() {
   const router = useRouter();
   const { login, loading, error } = useAuthViewModel();
-  
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -34,14 +35,12 @@ export default function LoginView() {
       Alert.alert('Error', emailValidation.message);
       return;
     }
-
     if (!password) {
       Alert.alert('Error', 'Por favor ingresa tu contraseña');
       return;
     }
 
     const result = await login({ email, password });
-    
     if (result.success) {
       router.replace('/home');
     } else {
@@ -49,100 +48,119 @@ export default function LoginView() {
     }
   };
 
-  const emailError = touched.email && !validateField(email, 'email').isValid
-    ? validateField(email, 'email').message
-    : null;
+  const emailError =
+    touched.email && !validateField(email, 'email').isValid
+      ? validateField(email, 'email').message
+      : null;
 
   return (
     <View style={styles.container}>
-      <StatusBar style="dark" />
-      
+      <StatusBar style="light" />
+
       <KeyboardAvoidingView
+        style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
+        keyboardVerticalOffset={0}
       >
-        <View style={styles.content}>
-          <View style={styles.logoContainer}>
-            <View style={styles.logoCircle}>
-              <Text style={styles.logoText}>E</Text>
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+          bounces={false}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Logo superior */}
+          <View style={styles.topSection}>
+            <View style={styles.orangeOverlay} />
+            <View style={styles.logoContainer}>
+              <View style={styles.logoBox}>
+                <Ionicons name="cube-outline" size={48} color="white" />
+              </View>
+              <Text style={styles.logoTitle}>EDUTECH</Text>
+              <Text style={styles.logoSub}>INVENTORY</Text>
             </View>
-            <Text style={styles.appName}>EDUTECH</Text>
-            <Text style={styles.tagline}>Resources available</Text>
           </View>
 
-          <View style={styles.formContainer}>
-            <Text style={styles.welcomeText}>Bienvenido</Text>
-            <Text style={styles.subtitle}>Inicia sesión para continuar</Text>
+          {/* Formulario */}
+          <View style={styles.formPanel}>
+            <Text style={styles.formTitle}>Start requesting :D</Text>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Correo electrónico</Text>
-              <View style={[styles.inputWrapper, emailError && styles.inputError]}>
-                <Ionicons name="mail-outline" size={20} color="#888" style={styles.inputIcon} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="usuario@ejemplo.com"
-                  placeholderTextColor="#999"
-                  value={email}
-                  onChangeText={setEmail}
-                  onBlur={() => setTouched(prev => ({ ...prev, email: true }))}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
-              </View>
-              {emailError && <Text style={styles.errorText}>{emailError}</Text>}
+            {/* Email */}
+            <Text style={styles.label}>E-mail:</Text>
+            <View style={[styles.inputBox, emailError ? styles.inputBoxError : null]}>
+              <TextInput
+                style={styles.input}
+                value={email}
+                onChangeText={setEmail}
+                onBlur={() => setTouched(prev => ({ ...prev, email: true }))}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                placeholderTextColor="#bbb"
+                placeholder="your@email.com"
+              />
             </View>
+            {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Contraseña</Text>
-              <View style={styles.inputWrapper}>
-                <Ionicons name="lock-closed-outline" size={20} color="#888" style={styles.inputIcon} />
-                <TextInput
-                  style={[styles.input, styles.passwordInput]}
-                  placeholder="••••••••"
-                  placeholderTextColor="#999"
-                  value={password}
-                  onChangeText={setPassword}
-                  onBlur={() => setTouched(prev => ({ ...prev, password: true }))}
-                  secureTextEntry={!showPassword}
+            {/* Password */}
+            <Text style={styles.label}>Password:</Text>
+            <View style={[
+              styles.inputBox,
+              touched.password && !password ? styles.inputBoxError : null,
+            ]}>
+              <TextInput
+                style={[styles.input, { flex: 1 }]}
+                value={password}
+                onChangeText={setPassword}
+                onBlur={() => setTouched(prev => ({ ...prev, password: true }))}
+                secureTextEntry={!showPassword}
+                placeholderTextColor="#bbb"
+                placeholder="••••••••"
+              />
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                style={styles.eyeBtn}
+              >
+                <Ionicons
+                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                  size={18}
+                  color="#888"
                 />
-                <TouchableOpacity
-                  style={styles.eyeButton}
-                  onPress={() => setShowPassword(!showPassword)}
-                >
-                  <Ionicons 
-                    name={showPassword ? "eye-off-outline" : "eye-outline"} 
-                    size={20} 
-                    color="#888" 
-                  />
-                </TouchableOpacity>
-              </View>
-              {touched.password && !password && (
-                <Text style={styles.errorText}>Este campo es requerido</Text>
-              )}
+              </TouchableOpacity>
             </View>
+            {touched.password && !password ? (
+              <Text style={styles.errorText}>Este campo es requerido</Text>
+            ) : null}
 
-            {error && <Text style={styles.errorText}>{error}</Text>}
+            {/* Forgot password */}
+            <TouchableOpacity style={styles.forgotRow}>
+              <Text style={styles.forgotText}>forgot password?</Text>
+            </TouchableOpacity>
 
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+            {/* Botón LOG IN */}
             <TouchableOpacity
-              style={[styles.loginButton, loading && styles.loginButtonDisabled]}
+              style={[styles.loginBtn, loading && { opacity: 0.7 }]}
               onPress={handleLogin}
               disabled={loading}
+              activeOpacity={0.85}
             >
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.loginButtonText}>Iniciar sesión</Text>
+                <Text style={styles.loginBtnText}>LOG IN</Text>
               )}
             </TouchableOpacity>
 
-            <View style={styles.registerContainer}>
-              <Text style={styles.registerText}>¿No tienes cuenta? </Text>
+            {/* Register - Solo esto queda, sin los logos sociales */}
+            <View style={styles.registerRow}>
+              <Text style={styles.registerText}>Don't have an account? </Text>
               <TouchableOpacity onPress={() => router.push('/register')}>
-                <Text style={styles.registerLink}>Regístrate</Text>
+                <Text style={styles.registerLink}>Register</Text>
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </View>
   );
@@ -151,131 +169,141 @@ export default function LoginView() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#2a1a5e',
   },
-  keyboardView: {
+  flex: {
     flex: 1,
   },
-  content: {
-    flex: 1,
+  scroll: {
+    flexGrow: 1,
+  },
+
+  // Top section
+  topSection: {
+    height: 300,
+    backgroundColor: '#2a1a5e',
     justifyContent: 'center',
-    paddingHorizontal: 24,
+    alignItems: 'center',
+  },
+  orangeOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(249,115,22,0.20)',
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 48,
+    zIndex: 1,
   },
-  logoCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#4A90E2',
+  logoBox: {
+    width: 100,
+    height: 100,
+    backgroundColor: '#f97316',
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 14,
   },
-  logoText: {
-    fontSize: 40,
-    fontWeight: 'bold',
-    color: '#fff',
+  logoTitle: {
+    color: '#f97316',
+    fontSize: 34,
+    fontWeight: '800',
+    letterSpacing: 3,
   },
-  appName: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#333',
-    letterSpacing: 1,
+  logoSub: {
+    color: '#f97316',
+    fontSize: 13,
+    fontWeight: '600',
+    letterSpacing: 5,
+    marginTop: 2,
   },
-  tagline: {
-    fontSize: 14,
-    color: '#888',
-    marginTop: 8,
+
+  // Form
+  formPanel: {
+    backgroundColor: '#5b3fd4',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    paddingHorizontal: 28,
+    paddingTop: 30,
+    paddingBottom: 40,
   },
-  formContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    padding: 24,
+  formTitle: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 22,
   },
-  welcomeText: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#888',
-    marginBottom: 28,
-  },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  inputLabel: {
-    fontSize: 14,
+  label: {
+    color: 'white',
+    fontSize: 13,
     fontWeight: '500',
-    color: '#333',
-    marginBottom: 8,
+    marginBottom: 6,
   },
-  inputWrapper: {
+  inputBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
+    backgroundColor: 'white',
+    borderRadius: 8,
+    marginBottom: 14,
+    paddingHorizontal: 12,
+    height: 46,
+    borderWidth: 2,
+    borderColor: 'transparent',
   },
-  inputError: {
-    borderColor: '#ff4444',
-  },
-  inputIcon: {
-    paddingLeft: 16,
+  inputBoxError: {
+    borderColor: '#ff6b6b',
   },
   input: {
     flex: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 14,
-    fontSize: 16,
+    fontSize: 15,
     color: '#333',
+    height: '100%',
   },
-  passwordInput: {
-    paddingRight: 12,
-  },
-  eyeButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  loginButton: {
-    backgroundColor: '#4A90E2',
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  loginButtonDisabled: {
-    opacity: 0.7,
-  },
-  loginButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  registerContainer: {
-    flexDirection: 'row',
+  eyeBtn: {
+    paddingLeft: 10,
+    height: '100%',
     justifyContent: 'center',
-    alignItems: 'center',
   },
-  registerText: {
-    color: '#888',
-    fontSize: 14,
+  forgotRow: {
+    alignItems: 'flex-end',
+    marginBottom: 20,
+    marginTop: -6,
   },
-  registerLink: {
-    color: '#4A90E2',
-    fontSize: 14,
-    fontWeight: 'bold',
+  forgotText: {
+    color: '#c4b5fd',
+    fontSize: 12,
   },
   errorText: {
-    color: '#ff4444',
+    color: '#ff6b6b',
     fontSize: 12,
+    marginTop: -10,
+    marginBottom: 10,
+    marginLeft: 2,
+  },
+  loginBtn: {
+    backgroundColor: '#f97316',
+    borderRadius: 30,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginBottom: 18,
     marginTop: 4,
-    marginLeft: 4,
+  },
+  loginBtnText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: 1,
+  },
+  registerRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  registerText: {
+    color: '#c4b5fd',
+    fontSize: 13,
+  },
+  registerLink: {
+    color: 'white',
+    fontSize: 13,
+    fontWeight: '700',
   },
 });

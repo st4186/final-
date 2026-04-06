@@ -24,3 +24,5 @@ export const ERROR_MESSAGES = {
   VALIDATION_ERROR: 'Los datos ingresados no son válidos.',
   UNKNOWN_ERROR: 'Ocurrió un error inesperado. Intenta de nuevo.',
 } as const;
+
+export { };
