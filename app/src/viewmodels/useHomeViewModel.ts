@@ -15,10 +15,11 @@ const MOCK_ACTIVE_RESOURCES: UserResource[] = [
   },
   { 
     id: '2', 
-    nombre: 'IT LAB', 
+    nombre: 'INDUSTRIAL WORKSHOP', 
     ubicacion: 'Building D- DL02', 
     estado: 'IN QUEUE',
-    usuario: 'user@gmail.com'
+    usuario: 'user@gmail.com',
+    horario: '9AM-10AM'
   },
   { 
     id: '3', 
