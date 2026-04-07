@@ -3,12 +3,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from './api';
 
 export const loginService = async (payload: { email: string; password: string }) => {
-  console.log("📡 Conectando a backend real...");
-  console.log("📍 URL:", api.defaults.baseURL);
+  console.log(" Conectando a backend real...");
+  console.log(" URL:", api.defaults.baseURL);
   
   const response = await api.post('/usuarios/login', payload);
   
-  console.log("✅ Respuesta recibida");
+  console.log(" Respuesta recibida");
   
   return {
     token: response.data.token,
