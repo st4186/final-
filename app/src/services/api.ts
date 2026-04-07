@@ -4,7 +4,7 @@ import axios from 'axios';
 // ==================== CONFIGURACIÓN ANDROID FÍSICO ====================
 // 🔥 CAMBIA ESTA IP POR LA IP DE TU COMPUTADORA
 // Abre CMD → ipconfig → busca "Dirección IPv4"
-const IP_COMPUTADORA = '192.168.68.113';  // ← CAMBIA AQUÍ
+const IP_COMPUTADORA = '172.23.82.137';  // ← CAMBIA AQUÍ
 
 const api = axios.create({
   baseURL: `http://${IP_COMPUTADORA}:3000/api`,
