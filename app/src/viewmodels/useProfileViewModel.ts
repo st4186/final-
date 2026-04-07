@@ -1,117 +1,65 @@
-/**
- * useProfileViewModel - Hook para lógica del perfil de usuario
- * Patrón MVVM: Separa la obtención y gestión de datos del usuario de la UI
- */
-
 import { useState } from 'react';
-import { Storage } from '../helpers/storage';
-import { User } from '../models';
+import { getSavedUser } from '../services/authService';
+import { getUserByIdService } from '../services/usersService';
 
-export interface ProfileState {
-  user: User | null;
-  loading: boolean;
-  error: string | null;
+interface User {
+  _id: string;
+  nombre: string;
+  apellido: string;
+  email: string;
+  role: string;
 }
 
 export const useProfileViewModel = () => {
-  const [state, setState] = useState<ProfileState>({
-    user: null,
-    loading: false,
-    error: null,
-  });
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const loadUserProfile = async (): Promise<boolean> => {
-    setState(prev => ({ ...prev, loading: true, error: null }));
-
+  const loadUserProfile = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      // Sprint 1: Obtener datos desde AsyncStorage (modo offline)
-      const offlineData = await Storage.getOfflineData<User>('userProfile');
+      // Carga desde AsyncStorage
+      const saved = await getSavedUser();
+      console.log('📦 Usuario guardado localmente:', saved);
       
-      if (offlineData?.data) {
-        setState({
-          user: offlineData.data,
-          loading: false,
-          error: null,
+      if (saved) {
+        setUser({
+          _id: saved.id || saved._id,
+          nombre: saved.nombre,
+          apellido: saved.apellido,
+          email: saved.email,
+          role: saved.role ?? 'alumno',
         });
-        return true;
       }
 
-      // Si no hay datos offline, intentar obtener token y simular llamada a API
-      const token = await Storage.getToken();
-      if (!token) {
-        throw new Error('No hay sesión activa');
+      // Si tiene ID, actualiza desde el backend
+      const userId = saved?.id || saved?._id;
+      if (userId) {
+        try {
+          const fresh = await getUserByIdService(userId);
+          console.log('🔄 Usuario del backend:', fresh);
+          
+          if (fresh && fresh._id) {
+            setUser({
+              _id: fresh._id,
+              nombre: fresh.nombre,
+              apellido: fresh.apellido,
+              email: fresh.email,
+              role: fresh.role ?? 'alumno',
+            });
+          }
+        } catch (err) {
+          console.log('Error fetching from backend, usando datos locales');
+        }
       }
-
-      // Mock de respuesta de API para Sprint 1
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      const mockUser: User = {
-        id: '1',
-        email: 'usuario@edutech.com',
-        name: 'Usuario Demo',
-        role: 'student',
-        createdAt: new Date().toISOString(),
-      };
-
-      // Guardar en offline para futuras consultas
-      await Storage.saveOfflineData('userProfile', mockUser);
-
-      setState({
-        user: mockUser,
-        loading: false,
-        error: null,
-      });
-
-      return true;
-    } catch (error) {
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : 'Error al cargar el perfil';
-
-      setState(prev => ({
-        ...prev,
-        loading: false,
-        error: errorMessage,
-      }));
-
-      return false;
+    } catch (err) {
+      console.log('Error general:', err);
+      setError('No se pudo cargar el perfil.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const updateUserProfile = async (updates: Partial<User>): Promise<boolean> => {
-    try {
-      const current = state.user;
-      if (!current) return false;
-
-      const updated: User = { ...current, ...updates };
-      
-      // Actualizar en AsyncStorage
-      await Storage.saveOfflineData('userProfile', updated);
-      
-      setState(prev => ({
-        ...prev,
-        user: updated,
-      }));
-
-      return true;
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      return false;
-    }
-  };
-
-  const clearProfile = () => {
-    setState({
-      user: null,
-      loading: false,
-      error: null,
-    });
-  };
-
-  return {
-    ...state,
-    loadUserProfile,
-    updateUserProfile,
-    clearProfile,
-  };
+  return { user, loading, error, loadUserProfile };
 };

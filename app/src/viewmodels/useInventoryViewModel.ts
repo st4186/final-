@@ -1,150 +1,103 @@
-// src/viewmodels/useInventoryViewModel.ts
+import { useState } from 'react';
+import { Resource } from '../models';
+import { getSavedUser } from '../services/authService';
+import { getMaterialesService } from '../services/materialesService';
+import { createSolicitudeService } from '../services/solicitudesService';
 
-import { useMemo, useState } from 'react';
-import { Storage } from '../helpers/storage';
-import { InventoryFilters, Resource, ResourceStatus } from '../models';
-
-// Mock Data para Sprint 1
-const MOCK_RESOURCES: Resource[] = [
-  { id: '1', nombre: 'LIBRARY CUBICLE', ubicacion: 'LEARNING COMMONS', estado: 'AVAILABLE' },
-  { id: '2', nombre: 'MAC LAB', ubicacion: 'BUILDING D', estado: 'AVAILABLE' },
-  { id: '3', nombre: 'INDUSTRIAL WORKSHOP', ubicacion: 'BUILDING B', estado: 'AVAILABLE' },
-  { id: '4', nombre: 'LASER PRINTER', ubicacion: 'BUILDING D', estado: 'AVAILABLE' },
-  { id: '5', nombre: 'LAB CHAIRS', ubicacion: 'BUILDING B- BL01', estado: 'IN USE' },
-  { id: '6', nombre: 'IT LAB', ubicacion: 'BUILDING D- DL02', estado: 'IN QUEUE' },
-];
-
-export interface InventoryState {
-  resources: Resource[];
-  loading: boolean;
-  error: string | null;
-  filters: InventoryFilters;
+interface Filters {
+  search?: string;
 }
 
+// Mapea campos reales del backend: titulo, descripcion, ubicacion, estado
+const mapToResource = (item: any): Resource => ({
+  id: item._id ?? item.id,
+  nombre: item.titulo ?? 'Sin nombre',       // backend usa "titulo"
+  descripcion: item.descripcion ?? '',
+  ubicacion: item.ubicacion ?? '',
+  estado: mapEstado(item.estado),
+});
+
+const mapEstado = (estado: string): Resource['estado'] => {
+  const s = (estado ?? '').toLowerCase();
+  if (s === 'disponible') return 'AVAILABLE';
+  if (s === 'no disponible') return 'UNAVAILABLE';
+  return 'UNAVAILABLE';
+};
+
 export const useInventoryViewModel = () => {
-  const [state, setState] = useState<InventoryState>({
-    resources: [],
-    loading: true,
-    error: null,
-    filters: {},
-  });
+  const [allResources, setAllResources] = useState<Resource[]>([]);
+  const [filteredResources, setFilteredResources] = useState<Resource[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Cargar recursos desde Mock o AsyncStorage
-  const loadResources = async (): Promise<boolean> => {
-    setState(prev => ({ ...prev, loading: true, error: null }));
-
+  const loadResources = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      // Sprint 1: Usar Mock Data
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const data = await getMaterialesService();
+      const list = Array.isArray(data) ? data : data.materiales ?? data.data ?? [];
+      const mapped = list.map(mapToResource);
+      setAllResources(mapped);
+      setFilteredResources(mapped);
+    } catch {
+      setError('No se pudo cargar el inventario. Verifica tu conexión.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      // Intentar cargar desde AsyncStorage primero
-      const cached = await Storage.getOfflineData<Resource[]>('inventory_cache');
-      
-      const resources = cached?.data || MOCK_RESOURCES;
+  const updateFilters = (newFilters: Partial<Filters>) => {
+    if (!newFilters.search?.trim()) {
+      setFilteredResources(allResources);
+      return;
+    }
+    const q = newFilters.search.toLowerCase();
+    setFilteredResources(
+      allResources.filter(
+        (r) =>
+          r.nombre.toLowerCase().includes(q) ||
+          r.ubicacion.toLowerCase().includes(q)
+      )
+    );
+  };
 
-      // Guardar en cache para modo offline
-      await Storage.saveOfflineData('inventory_cache', resources);
+  // Crear solicitud para un material disponible
+  const requestResource = async (materialId: string): Promise<boolean> => {
+    try {
+      const user = await getSavedUser();
+      if (!user?._id) return false;
 
-      setState({
-        resources,
-        loading: false,
-        error: null,
-        filters: {},
+      const material = allResources.find((r) => r.id === materialId);
+      await createSolicitudeService({
+        titulo: material?.nombre ?? 'Solicitud de recurso',
+        descripcion: material?.descripcion ?? 'Sin descripción',
+        fecha_programada: new Date().toISOString(), // fecha actual como default
+        prioridad: 'media',
+        creadoPor: user._id,
       });
-
+      await loadResources();
       return true;
-    } catch (error) {
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : 'Error al cargar el inventario';
-
-      setState(prev => ({
-        ...prev,
-        loading: false,
-        error: errorMessage,
-      }));
-
+    } catch {
       return false;
     }
   };
 
-  // Filtrar recursos con memoization para rendimiento
-  const filteredResources = useMemo(() => {
-    const { search, status, location } = state.filters;
-
-    return state.resources.filter(item => {
-      const matchesSearch = !search || 
-        item.nombre.toLowerCase().includes(search.toLowerCase()) ||
-        item.ubicacion.toLowerCase().includes(search.toLowerCase());
-      
-      const matchesStatus = !status || item.estado === status;
-      const matchesLocation = !location || 
-        item.ubicacion.toLowerCase().includes(location.toLowerCase());
-
-      return matchesSearch && matchesStatus && matchesLocation;
-    });
-  }, [state.resources, state.filters]);
-
-  // Actualizar filtros de búsqueda
-  const updateFilters = (newFilters: Partial<InventoryFilters>) => {
-    setState(prev => ({
-      ...prev,
-      filters: { ...prev.filters, ...newFilters },
-    }));
-  };
-
-  // Solicitar recurso (Mock para Sprint 1)
-  const requestResource = async (resourceId: string): Promise<boolean> => {
-    try {
-      // Simular llamada a API
-      await new Promise(resolve => setTimeout(resolve, 800));
-
-      // Actualizar estado local del recurso
-      setState(prev => ({
-        ...prev,
-        resources: prev.resources.map(r => 
-          r.id === resourceId ? { ...r, estado: 'IN QUEUE' as ResourceStatus } : r
-        ),
-      }));
-
-      // Guardar cambios en AsyncStorage
-      await Storage.saveOfflineData('inventory_cache', state.resources);
-
-      return true;
-    } catch (error) {
-      console.error('Error requesting resource:', error);
-      return false;
+  const getStatusColor = (estado: string) => {
+    switch (estado) {
+      case 'AVAILABLE': return '#4CAF50';
+      case 'IN USE': return '#5b3fd4';
+      case 'UNAVAILABLE': return '#F44336';
+      default: return '#888';
     }
-  };
-
-  // Obtener color según estado (utilidad para la vista)
-  const getStatusColor = (status: ResourceStatus): string => {
-    const colors: Record<ResourceStatus, string> = {
-      'AVAILABLE': '#4CAF50',
-      'IN USE': '#FF9800',
-      'IN QUEUE': '#2196F3',
-      'MAINTENANCE': '#F44336',
-    };
-    return colors[status] || '#999';
-  };
-
-  // Limpiar estado
-  const clearInventory = () => {
-    setState({
-      resources: [],
-      loading: false,
-      error: null,
-      filters: {},
-    });
   };
 
   return {
-    ...state,
     filteredResources,
+    loading,
+    error,
     loadResources,
     updateFilters,
     requestResource,
     getStatusColor,
-    clearInventory,
   };
 };

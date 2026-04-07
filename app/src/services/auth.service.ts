@@ -1,70 +1,46 @@
-import { AuthResponse, LoginCredentials, RegisterData, User } from '../models';
+// services/authService.ts
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from './api';
 
-// Mock Data para Sprint 1
-const MOCK_DELAY = 1500;
-
-const mockUser: User = {
-  id: '1',
-  email: 'test@edutech.com',
-  name: 'Usuario Test',
-  role: 'student',
-  createdAt: new Date().toISOString(),
+export const loginService = async (payload: { email: string; password: string }) => {
+  console.log("📡 Conectando a backend real...");
+  console.log("📍 URL:", api.defaults.baseURL);
+  
+  const response = await api.post('/usuarios/login', payload);
+  
+  console.log("✅ Respuesta recibida");
+  
+  return {
+    token: response.data.token,
+    usuario: response.data.usuario
+  };
 };
 
-const mockToken = 'mock_jwt_token_' + Date.now();
+export const registerService = async (payload: {
+  nombre: string;
+  apellido: string;
+  email: string;
+  password: string;
+  role: string;
+}) => {
+  const response = await api.post('/usuarios/register', payload);
+  return response.data;
+};
 
-export class AuthService {
-  async authenticate(credentials: LoginCredentials): Promise<AuthResponse> {
-    // Simular llamada a API
-    await new Promise(resolve => setTimeout(resolve, MOCK_DELAY));
+export const saveSession = async (token: string, user: any) => {
+  await AsyncStorage.setItem('userToken', token);
+  await AsyncStorage.setItem('userProfile', JSON.stringify(user));
+};
 
-    // Validación mock
-    if (
-      credentials.email === 'test@edutech.com' &&
-      credentials.password === 'Password123'
-    ) {
-      return {
-        token: mockToken,
-        user: mockUser,
-      };
-    }
+export const clearSession = async () => {
+  await AsyncStorage.multiRemove(['userToken', 'userProfile']);
+};
 
-    throw new Error('Credenciales inválidas');
-  }
+export const getToken = async () => {
+  return await AsyncStorage.getItem('userToken');
+};
 
-  async register(data: RegisterData): Promise<AuthResponse> {
-    await new Promise(resolve => setTimeout(resolve, MOCK_DELAY));
-
-    if (data.password !== data.confirmPassword) {
-      throw new Error('Las contraseñas no coinciden');
-    }
-
-    if (data.password.length < 8) {
-      throw new Error('La contraseña debe tener al menos 8 caracteres');
-    }
-
-    // Mock de registro exitoso
-    const newUser: User = {
-      id: Date.now().toString(),
-      email: data.email,
-      name: data.name,
-      role: 'student',
-      createdAt: new Date().toISOString(),
-    };
-
-    return {
-      token: mockToken,
-      user: newUser,
-    };
-  }
-
-  async invalidateToken(): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    // En Sprint 2: llamar al endpoint de logout
-  }
-
-  async getCurrentUser(token: string): Promise<User> {
-    await new Promise(resolve => setTimeout(resolve, MOCK_DELAY));
-    return mockUser;
-  }
-}
+export const getUser = async () => {
+  const userStr = await AsyncStorage.getItem('userProfile');
+  return userStr ? JSON.parse(userStr) : null;
+};
