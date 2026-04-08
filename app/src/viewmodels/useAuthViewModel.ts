@@ -22,28 +22,28 @@ export const useAuthViewModel = () => {
     password: string;
   }): Promise<AuthResult> => {
     console.log("\n========== LOGIN ==========");
-    console.log("📝 [login] Email:", payload.email);
-    console.log("📝 [login] Password length:", payload.password.length);
+    console.log("[login] Email:", payload.email);
+    console.log(" [login] Password length:", payload.password.length);
     
     setLoading(true);
     setError(null);
     
     try {
-      console.log("📡 [login] Llamando a loginService...");
+      console.log(" [login] Llamando a loginService...");
       const data = await loginService(payload);
       
-      console.log("📦 [login] Data recibida:", {
+      console.log(" [login] Data recibida:", {
         hasToken: !!data.token,
         hasUsuario: !!data.usuario
       });
       
-      console.log("💾 [login] Guardando sesión...");
+      console.log(" [login] Guardando sesión...");
       await saveSession(data.token, data.usuario ?? { email: payload.email });
       
-      console.log("✅ [login] Login exitoso!");
+      console.log(" [login] Login exitoso!");
       return { success: true };
     } catch (err: any) {
-      console.error("❌ [login] Error capturado:");
+      console.error(" [login] Error capturado:");
       console.error("- Message:", err.message);
       console.error("- Response:", err.response?.data);
       
@@ -68,9 +68,9 @@ export const useAuthViewModel = () => {
     confirmPassword?: string;
   }): Promise<AuthResult> => {
     console.log("\n========== REGISTER ==========");
-    console.log("📝 [register] Email:", payload.email);
-    console.log("📝 [register] Name:", payload.name);
-    console.log("📝 [register] Password length:", payload.password.length);
+    console.log(" [register] Email:", payload.email);
+    console.log(" [register] Name:", payload.name);
+    console.log(" [register] Password length:", payload.password.length);
     
     setLoading(true);
     setError(null);
@@ -78,7 +78,7 @@ export const useAuthViewModel = () => {
     try {
       // Verificar que las contraseñas coincidan
       if (payload.confirmPassword && payload.password !== payload.confirmPassword) {
-        console.log("❌ [register] Las contraseñas no coinciden");
+        console.log(" [register] Las contraseñas no coinciden");
         setError('Las contraseñas no coinciden');
         return { success: false, message: 'Las contraseñas no coinciden' };
       }
@@ -96,7 +96,7 @@ export const useAuthViewModel = () => {
         role: 'alumno',
       };
       
-      console.log("📦 [register] Datos formateados:", { 
+      console.log(" [register] Datos formateados:", { 
         nombre: registerData.nombre,
         apellido: registerData.apellido,
         email: registerData.email,
@@ -104,15 +104,15 @@ export const useAuthViewModel = () => {
         role: registerData.role
       });
       
-      console.log("📡 [register] Llamando a registerService...");
+      console.log(" [register] Llamando a registerService...");
       const data = await registerService(registerData);
       
-      console.log("✅ [register] Registro exitoso!");
-      console.log("📦 [register] Respuesta:", data);
+      console.log(" [register] Registro exitoso!");
+      console.log(" [register] Respuesta:", data);
       
       return { success: true };
     } catch (err: any) {
-      console.error("❌ [register] Error capturado:");
+      console.error(" [register] Error capturado:");
       console.error("- Message:", err.message);
       console.error("- Response:", err.response?.data);
       console.error("- Status:", err.response?.status);
@@ -135,10 +135,10 @@ export const useAuthViewModel = () => {
     console.log("\n========== LOGOUT ==========");
     try {
       await clearSession();
-      console.log("✅ [logout] Sesión cerrada exitosamente");
+      console.log(" [logout] Sesión cerrada exitosamente");
       return true;
     } catch (error) {
-      console.error("❌ [logout] Error al cerrar sesión:", error);
+      console.error(" [logout] Error al cerrar sesión:", error);
       return false;
     } finally {
       console.log("========== FIN LOGOUT ==========\n");
